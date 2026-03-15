@@ -115,20 +115,7 @@ export default function App() {
     });
   };
 
-  const donate = () => {
-    const upiUrl = 'upi://pay?pa=prvbal-3@okicici&pn=Coin%20Toss&cu=INR';
-    Linking.canOpenURL(upiUrl)
-      .then((supported) => {
-        if (supported) {
-          Linking.openURL(upiUrl);
-        } else {
-          Alert.alert('GPay / UPI not found', 'Please install Google Pay or any UPI app to donate.');
-        }
-      })
-      .catch(() => Alert.alert('Error', 'Could not open UPI app.'));
-  };
-
-
+  const rotateY = flipAnim.interpolate({
     inputRange: [0, 1, 2, 3, 4, 5, 5.5],
     outputRange: [
       '0deg',
@@ -160,6 +147,19 @@ export default function App() {
       0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1,
     ],
   });
+
+  const donate = () => {
+    const upiUrl = 'upi://pay?pa=prvbal-3@okicici&pn=Coin%20Toss&cu=INR';
+    Linking.canOpenURL(upiUrl)
+      .then((supported) => {
+        if (supported) {
+          Linking.openURL(upiUrl);
+        } else {
+          Alert.alert('GPay / UPI not found', 'Please install Google Pay or any UPI app to donate.');
+        }
+      })
+      .catch(() => Alert.alert('Error', 'Could not open UPI app.'));
+  };
 
   return (
     <View style={styles.root}>
