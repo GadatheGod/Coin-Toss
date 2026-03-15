@@ -8,6 +8,8 @@ import {
   Dimensions,
   StatusBar,
   ScrollView,
+  Linking,
+  Alert,
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -113,7 +115,20 @@ export default function App() {
     });
   };
 
-  const rotateY = flipAnim.interpolate({
+  const donate = () => {
+    const upiUrl = 'upi://pay?pa=prvbal-3@okicici&pn=Coin%20Toss&cu=INR';
+    Linking.canOpenURL(upiUrl)
+      .then((supported) => {
+        if (supported) {
+          Linking.openURL(upiUrl);
+        } else {
+          Alert.alert('GPay / UPI not found', 'Please install Google Pay or any UPI app to donate.');
+        }
+      })
+      .catch(() => Alert.alert('Error', 'Could not open UPI app.'));
+  };
+
+
     inputRange: [0, 1, 2, 3, 4, 5, 5.5],
     outputRange: [
       '0deg',
@@ -377,6 +392,15 @@ export default function App() {
           </View>
         )}
 
+        {/* Donate */}
+        <TouchableOpacity onPress={donate} activeOpacity={0.8} style={styles.donateWrap}>
+          <View style={styles.donateBtn}>
+            <Text style={styles.donateIcon}>♥</Text>
+            <Text style={styles.donateTxt}>SUPPORT VIA GPAY</Text>
+          </View>
+          <Text style={styles.donateUpi}>prvbal-3@okicici</Text>
+        </TouchableOpacity>
+
         <View style={{ height: 48 }} />
       </ScrollView>
     </View>
@@ -632,4 +656,20 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(196,181,253,0.25)',
   },
   histTxt: { fontSize: 10, fontWeight: '500' },
+
+  donateWrap: { alignItems: 'center', marginTop: 24, marginBottom: 8 },
+  donateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    borderRadius: 50,
+    backgroundColor: 'rgba(80,180,100,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(80,200,100,0.4)',
+  },
+  donateIcon: { fontSize: 16, color: '#60E080' },
+  donateTxt: { fontSize: 13, fontWeight: '700', color: '#60E080', letterSpacing: 2 },
+  donateUpi: { fontSize: 10, color: '#3a6a44', letterSpacing: 1, marginTop: 6 },
 });
