@@ -29,6 +29,8 @@ export default function App() {
   const rippleScale = useRef(new Animated.Value(1)).current;
   const rippleOpacity = useRef(new Animated.Value(0)).current;
   const showingHeads = useRef(true);
+  const streakCount = useRef(0);
+  const lastResult = useRef(null);
 
   const total = heads + tails;
   const headsPct = total === 0 ? 50 : Math.round((heads / total) * 100);
@@ -40,7 +42,13 @@ export default function App() {
     resultOpacity.setValue(0);
     resultScale.setValue(0.8);
 
-    const outcome = Math.random() < 0.5;
+    // Anti-streak: reduce probability after 2+ consecutive same results
+    let probability = 0.5;
+    if (lastResult.current !== null && streakCount.current >= 2) {
+      probability = streakCount.current >= 3 ? 0.15 : 0.30;
+      if (!lastResult.current) probability = 1 - probability;
+    }
+    const outcome = Math.random() < probability;
     showingHeads.current = outcome;
 
     // Ripple burst
@@ -101,6 +109,9 @@ export default function App() {
       else setTails((t) => t + 1);
       setResult(outcome ? 'Heads' : 'Tails');
       setHistory((prev) => [outcome ? 'H' : 'T', ...prev].slice(0, 16));
+      if (lastResult.current === outcome) streakCount.current += 1;
+      else streakCount.current = 1;
+      lastResult.current = outcome;
 
       Animated.parallel([
         Animated.spring(resultOpacity, { toValue: 1, useNativeDriver: true }),
@@ -149,16 +160,19 @@ export default function App() {
   });
 
   const donate = () => {
-    const upiUrl = 'upi://pay?pa=prvbal-3@okicici&pn=Coin%20Toss&cu=INR';
-    Linking.canOpenURL(upiUrl)
-      .then((supported) => {
-        if (supported) {
-          Linking.openURL(upiUrl);
-        } else {
-          Alert.alert('GPay / UPI not found', 'Please install Google Pay or any UPI app to donate.');
-        }
-      })
-      .catch(() => Alert.alert('Error', 'Could not open UPI app.'));
+    // Direct openURL works on Android 11+ without needing queries in manifest
+    const upiUrl = 'upi://pay?pa=prvbal-3@okicici&pn=CoinToss&cu=INR';
+    Linking.openURL(upiUrl).catch(() => {
+      // Fallback to GPay specific intent
+      const gpayUrl = 'intent://pay?pa=prvbal-3@okicici&pn=CoinToss&cu=INR#Intent;scheme=upi;package=com.google.android.apps.netz;end';
+      Linking.openURL(gpayUrl).catch(() => {
+        Alert.alert(
+          'UPI App Not Found',
+          'Please install Google Pay or PhonePe to donate.\n\nUPI ID: prvbal-3@okicici',
+          [{ text: 'OK' }]
+        );
+      });
+    });
   };
 
   return (
